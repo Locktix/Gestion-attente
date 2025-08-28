@@ -210,6 +210,18 @@
       attachFirebase();
     }
   });
+
+  // Indicateur de connexion (événement relayé par firebase-init)
+  window.addEventListener('firebase-connection', (e)=>{
+    const isOnline = !!(e && e.detail);
+    try{
+      document.documentElement.dataset.firebase = isOnline ? 'online' : 'offline';
+      const badge = document.querySelector('.firebase-indicator');
+      if(badge){
+        badge.textContent = isOnline ? 'Synchro Firebase: En ligne' : 'Synchro Firebase: Hors ligne';
+      }
+    }catch(_e){}
+  });
 })();
 
 
