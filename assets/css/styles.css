@@ -1,0 +1,53 @@
+/* Base */
+:root{--bg:#0b1320;--fg:#e6ecff;--muted:#a8b2d1;--accent:#6ea8fe;--accent-2:#46d6a0;--danger:#ff6b6b}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;}
+a{color:var(--accent)}
+
+.container{max-width:920px;margin:0 auto;padding:24px}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;gap:24px}
+.row{display:flex;align-items:center;gap:16px}
+.between{justify-content:space-between}
+
+.brand{font-weight:800;letter-spacing:.3px;margin:0}
+.cta{background:linear-gradient(180deg,var(--accent),#3b77f3);color:#fff;border:none;border-radius:16px;padding:18px 28px;font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(110,168,254,.35);transition:transform .06s ease,filter .2s ease}
+.cta:hover{transform:translateY(-1px)}
+.cta:active{transform:translateY(1px)}
+.cta.large{font-size:28px;padding:22px 36px}
+.cta.huge{font-size:36px;padding:28px 48px;border-radius:24px;}
+.hint{color:var(--muted);margin:0}
+.links{display:flex;gap:12px;color:var(--muted)}
+
+/* Indicateur de sortie du ticket */
+.exit-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px}
+.exit-indicator .arrow{font-size:48px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
+.exit-indicator .exit-text{color:var(--muted);font-weight:600}
+
+/* TV page */
+.tv-container{display:grid;grid-template-rows:auto 1fr auto;min-height:100vh;padding:32px;gap:32px}
+.tv-header{display:flex;align-items:center;justify-content:space-between}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted)}
+.now-calling{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-radius:24px}
+.label{color:var(--muted);font-weight:600;margin-bottom:8px}
+.current-number{font-size:18vw;line-height:1;font-weight:800;letter-spacing:2px;text-shadow:0 12px 40px rgba(0,0,0,.35)}
+.previous{display:flex;flex-direction:column;gap:12px}
+.previous-list{display:flex;gap:12px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.08);padding:10px 14px;border-radius:12px;font-size:28px;font-weight:700}
+
+/* Médecin */
+.controls{display:flex;align-items:center;gap:20px;margin-top:28px}
+.last-called{color:var(--muted)}
+
+/* Print ticket helpers (hidden on screen) */
+.ticket-root{width:300px;margin:0 auto;padding:12px 16px;font-family:Inter,system-ui,sans-serif;color:#000}
+.ticket-header{display:flex;align-items:flex-start;justify-content:space-between}
+.ticket-title{font-weight:800}
+.ticket-number{font-size:72px;font-weight:900;text-align:center;margin:12px 0}
+.ticket-meta{font-size:12px;color:#333}
+
+@media (max-width:720px){
+  .current-number{font-size:24vw}
+}
+
+

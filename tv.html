@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV - Gestion d'attente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="page-tv">
+    <main class="tv-container">
+        <header class="tv-header">
+            <h1>Centre Médical Ghemning</h1>
+            <div id="clock" class="clock"></div>
+        </header>
+
+        <section class="now-calling">
+            <div class="label">Dernier numéro appelé</div>
+            <div id="current-number" class="current-number">—</div>
+        </section>
+
+        <section class="previous">
+            <div class="label">Précédents</div>
+            <div id="previous-list" class="previous-list"></div>
+        </section>
+    </main>
+
+    <script src="assets/js/store.js"></script>
+    <script src="assets/js/tv.js"></script>
+</body>
+</html>
+
+

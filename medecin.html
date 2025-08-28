@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Médecin - Gestion d'attente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="page-medecin">
+    <main class="container">
+        <header class="row between">
+            <h1>Centre Médical Ghemning — Médecin</h1>
+            <div class="queue-info">En file: <span id="queue-length">0</span></div>
+        </header>
+
+        <section class="controls">
+            <button id="next-person" class="cta large">Personne suivante</button>
+            <div class="last-called">Dernier appelé: <span id="last-called">—</span></div>
+        </section>
+
+        <section class="help">
+            <p>Ouvrez <a href="tv.html">la page TV</a> pour l'affichage public.</p>
+        </section>
+    </main>
+
+    <script src="assets/js/store.js"></script>
+    <script src="assets/js/medecin.js"></script>
+</body>
+</html>
+
+
