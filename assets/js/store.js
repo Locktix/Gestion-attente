@@ -80,11 +80,12 @@
     }, 2000);
   }
 
-  // Détection Firebase
-  const hasFirebase = !!(window.FirebaseDB && window.FirebaseDB.db);
+  // Détection Firebase (peut être retardée)
+  let hasFirebase = !!(window.FirebaseDB && window.FirebaseDB.db);
 
-  // Si Firebase est dispo, abonnez-vous au noeud et synchronisez localStorage
-  if(hasFirebase){
+  function attachFirebase(){
+    if(!(window.FirebaseDB && window.FirebaseDB.db)) return;
+    hasFirebase = true;
     const { db, ref, onValue, runTransaction, get, set } = window.FirebaseDB;
     const stateRef = ref(db, FIREBASE_PATH);
 
@@ -125,12 +126,10 @@
           s.queue.push(nextNumber);
           return s;
         }).then((res)=>{
-          // res.snapshot.val() contient l'état final
           const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
           console.debug('[RTDB] issueTicket OK →', finalState);
           return finalState;
         }).catch((_e)=>{
-          // fallback local si la transaction échoue
           console.warn('[RTDB] issueTicket échec, fallback local');
           return update((s)=>{
             const nextNumber = (Number(s.lastIssued)||0)+1;
@@ -156,7 +155,6 @@
           console.debug('[RTDB] callNext OK →', finalState);
           return finalState;
         }).catch((_e)=>{
-          // fallback local si la transaction échoue
           console.warn('[RTDB] callNext échec, fallback local');
           return update((s)=>{
             if(!s.queue.length) return s;
@@ -169,6 +167,11 @@
         });
       }
     };
+  }
+
+  // Si Firebase est déjà prêt au chargement
+  if(hasFirebase){
+    attachFirebase();
   } else {
     // Fallback 100% local
     const Store = {
@@ -199,6 +202,14 @@
     };
     window.QueueStore = Store;
   }
+
+  // Basculer automatiquement dès que Firebase est prêt
+  window.addEventListener('firebase-ready', ()=>{
+    if(!hasFirebase){
+      console.debug('[RTDB] Firebase prêt → bascule du store');
+      attachFirebase();
+    }
+  });
 })();
 
 
