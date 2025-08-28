@@ -2,6 +2,7 @@
 (function(){
   const CHANNEL_NAME = 'gestion-attente';
   const STORAGE_KEY = 'queue-state-v1';
+  const FIREBASE_PATH = 'queue/state';
 
   const initialState = {
     lastIssued: 0,      // dernier numéro délivré à la borne
@@ -79,31 +80,115 @@
     }, 2000);
   }
 
-  // API publique
-  const Store = {
-    getState,
-    onChange,
-    issueTicket(){
-      return update((s)=>{
-        const nextNumber = (Number(s.lastIssued)||0)+1;
-        s.lastIssued = nextNumber;
-        s.queue.push(nextNumber);
-        return s;
-      });
-    },
-    callNext(){
-      return update((s)=>{
-        if(!s.queue.length) return s;
-        const next = s.queue.shift();
-        s.lastCalled = next;
-        s.history.unshift(next);
-        s.history = s.history.slice(0,8);
-        return s;
-      });
-    }
-  };
+  // Détection Firebase
+  const hasFirebase = !!(window.FirebaseDB && window.FirebaseDB.db);
 
-  window.QueueStore = Store;
+  // Si Firebase est dispo, abonnez-vous au noeud et synchronisez localStorage
+  if(hasFirebase){
+    const { db, ref, onValue, runTransaction, get, child, set } = window.FirebaseDB;
+    const stateRef = ref(db, FIREBASE_PATH);
+
+    // Initialiser si n'existe pas
+    get(child(ref(db), FIREBASE_PATH)).then((snap)=>{
+      if(!snap.exists()){
+        return set(stateRef, initialState);
+      }
+      return null;
+    }).catch(()=>{});
+
+    // Abonnement temps réel → met à jour le cache local + broadcast
+    onValue(stateRef, (snapshot)=>{
+      const val = snapshot.val();
+      if(val){
+        const safe = {
+          lastIssued: Number(val.lastIssued)||0,
+          lastCalled: Number(val.lastCalled)||0,
+          history: Array.isArray(val.history)? val.history.slice(0,20):[],
+          queue: Array.isArray(val.queue)? val.queue:[]
+        };
+        setState(safe);
+      }
+    });
+
+    // API basée Firebase
+    window.QueueStore = {
+      getState,
+      onChange,
+      issueTicket(){
+        return window.FirebaseDB.runTransaction(stateRef, (current)=>{
+          const s = current || {...initialState};
+          const nextNumber = (Number(s.lastIssued)||0)+1;
+          s.lastIssued = nextNumber;
+          s.queue = Array.isArray(s.queue)? s.queue:[];
+          s.queue.push(nextNumber);
+          return s;
+        }).then((res)=>{
+          // res.snapshot.val() contient l'état final
+          const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
+          return finalState;
+        }).catch((_e)=>{
+          // fallback local si la transaction échoue
+          return update((s)=>{
+            const nextNumber = (Number(s.lastIssued)||0)+1;
+            s.lastIssued = nextNumber;
+            s.queue.push(nextNumber);
+            return s;
+          });
+        });
+      },
+      callNext(){
+        return window.FirebaseDB.runTransaction(stateRef, (current)=>{
+          const s = current || {...initialState};
+          s.queue = Array.isArray(s.queue)? s.queue:[];
+          if(!s.queue.length) return s;
+          const next = s.queue.shift();
+          s.lastCalled = next;
+          s.history = Array.isArray(s.history)? s.history:[];
+          s.history.unshift(next);
+          s.history = s.history.slice(0,8);
+          return s;
+        }).then((res)=>{
+          const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
+          return finalState;
+        }).catch((_e)=>{
+          // fallback local si la transaction échoue
+          return update((s)=>{
+            if(!s.queue.length) return s;
+            const next = s.queue.shift();
+            s.lastCalled = next;
+            s.history.unshift(next);
+            s.history = s.history.slice(0,8);
+            return s;
+          });
+        });
+      }
+    };
+  } else {
+    // Fallback 100% local
+    const Store = {
+      getState,
+      onChange,
+      issueTicket(){
+        return update((s)=>{
+          const nextNumber = (Number(s.lastIssued)||0)+1;
+          s.lastIssued = nextNumber;
+          s.queue.push(nextNumber);
+          return s;
+        });
+      },
+      callNext(){
+        return update((s)=>{
+          if(!s.queue.length) return s;
+          const next = s.queue.shift();
+          s.lastCalled = next;
+          s.history.unshift(next);
+          s.history = s.history.slice(0,8);
+          return s;
+        });
+      }
+    };
+    window.QueueStore = Store;
+  }
 })();
 
 
