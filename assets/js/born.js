@@ -1,6 +1,6 @@
 (function(){
   const btn = document.getElementById('take-ticket');
-  const COOLDOWN_MS = 3000;
+  const COOLDOWN_MS = 1000;
 
   if(!btn){ return; }
 
@@ -20,6 +20,7 @@
     btn.textContent = 'Veuillez patienter…';
 
     // Ouvrir la fenêtre d'impression
+    // Les tickets imprimés restent numériques (sans lettre)
     openPrintWindow(number, dateStr, timeStr);
 
     // Réactiver après cooldown

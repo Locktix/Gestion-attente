@@ -2,15 +2,15 @@
   const currentEl = document.getElementById('current-number');
   const prevEl = document.getElementById('previous-list');
   const clockEl = document.getElementById('clock');
-  let lastCalledSeen = 0;
+  let lastCalledSeen = '';
 
   function render(state){
     currentEl.textContent = state.lastCalled ? String(state.lastCalled) : '—';
     prevEl.innerHTML = '';
-    (state.history||[]).slice(1,7).forEach((n)=>{
+    (state.history||[]).slice(1,7).forEach((label)=>{
       const div = document.createElement('div');
       div.className = 'badge';
-      div.textContent = String(n);
+      div.textContent = String(label);
       prevEl.appendChild(div);
     });
   }
@@ -53,7 +53,7 @@
   // init
   const initState = window.QueueStore.getState();
   render(initState);
-  lastCalledSeen = initState.lastCalled || 0;
+  lastCalledSeen = initState.lastCalled || '';
   tickClock();
   setInterval(tickClock, 1000);
 

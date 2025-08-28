@@ -2,6 +2,7 @@
   const nextBtn = document.getElementById('next-person');
   const lenEl = document.getElementById('queue-length');
   const lastEl = document.getElementById('last-called');
+  const roomRadios = document.querySelectorAll('input[name="room"]');
   let audioCtx = null;
   function blip(){
     try{
@@ -34,7 +35,9 @@
 
   if(nextBtn){
     nextBtn.addEventListener('click', async ()=>{
-      const s = await window.QueueStore.callNext();
+      let selectedRoom = null;
+      roomRadios.forEach((r)=>{ if(r.checked) selectedRoom = r.value; });
+      const s = await window.QueueStore.callNext(selectedRoom);
       render(s);
       blip();
     });

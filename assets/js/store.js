@@ -5,11 +5,16 @@
   const FIREBASE_PATH = 'queue/state';
 
   const initialState = {
-    lastIssued: 0,      // dernier numéro délivré à la borne
-    lastCalled: 0,      // dernier numéro appelé par le médecin
-    history: [],        // derniers numéros appelés (du plus récent au plus ancien)
-    queue: []           // numéros en attente (FIFO)
+    lastIssued: 0,      // dernier numéro délivré (valeur numérique)
+    lastCalled: '',     // dernier ticket appelé, ex: "12A"
+    history: [],        // derniers libellés appelés (ex: "12A")
+    queue: []           // numéros en attente (FIFO) → nombres simples
   };
+
+  function coerceQueue(q){
+    if(!Array.isArray(q)) return [];
+    return q.map((item)=> Number(item)||0);
+  }
 
   function getState(){
     try{
@@ -22,9 +27,9 @@
       // sécuriser les champs
       return {
         lastIssued: Number(parsed.lastIssued)||0,
-        lastCalled: Number(parsed.lastCalled)||0,
-        history: Array.isArray(parsed.history)? parsed.history.slice(0,20):[],
-        queue: Array.isArray(parsed.queue)? parsed.queue:[]
+        lastCalled: typeof parsed.lastCalled==='string'? parsed.lastCalled:'',
+        history: Array.isArray(parsed.history)? parsed.history.map(String).slice(0,20):[],
+        queue: coerceQueue(parsed.queue)
       };
     }catch(err){
       console.error('Lecture état échouée', err);
@@ -104,9 +109,9 @@
       if(val){
         const safe = {
           lastIssued: Number(val.lastIssued)||0,
-          lastCalled: Number(val.lastCalled)||0,
-          history: Array.isArray(val.history)? val.history.slice(0,20):[],
-          queue: Array.isArray(val.queue)? val.queue:[]
+          lastCalled: typeof val.lastCalled==='string'? val.lastCalled:'',
+          history: Array.isArray(val.history)? val.history.map(String).slice(0,20):[],
+          queue: coerceQueue(val.queue)
         };
         console.debug('[RTDB] onValue → setState', safe);
         setState(safe);
@@ -120,9 +125,9 @@
       async issueTicket(){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
+          s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
           const nextNumber = (Number(s.lastIssued)||0)+1;
           s.lastIssued = nextNumber;
-          s.queue = Array.isArray(s.queue)? s.queue:[];
           s.queue.push(nextNumber);
           return s;
         }).then((res)=>{
@@ -132,6 +137,7 @@
         }).catch((_e)=>{
           console.warn('[RTDB] issueTicket échec, fallback local');
           return update((s)=>{
+            s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
             const nextNumber = (Number(s.lastIssued)||0)+1;
             s.lastIssued = nextNumber;
             s.queue.push(nextNumber);
@@ -139,15 +145,17 @@
           });
         });
       },
-      async callNext(){
+      async callNext(room){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
-          s.queue = Array.isArray(s.queue)? s.queue:[];
+          s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
           if(!s.queue.length) return s;
           const next = s.queue.shift();
-          s.lastCalled = next;
-          s.history = Array.isArray(s.history)? s.history:[];
-          s.history.unshift(next);
+          const wanted = (room ? String(room).toUpperCase() : '');
+          const label = wanted ? `${next}${wanted}` : String(next);
+          s.lastCalled = label;
+          s.history = Array.isArray(s.history)? s.history.map(String):[];
+          s.history.unshift(label);
           s.history = s.history.slice(0,8);
           return s;
         }).then((res)=>{
@@ -157,10 +165,14 @@
         }).catch((_e)=>{
           console.warn('[RTDB] callNext échec, fallback local');
           return update((s)=>{
+            s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
             if(!s.queue.length) return s;
             const next = s.queue.shift();
-            s.lastCalled = next;
-            s.history.unshift(next);
+            const wanted = (room ? String(room).toUpperCase() : '');
+            const label = wanted ? `${next}${wanted}` : String(next);
+            s.lastCalled = label;
+            s.history = Array.isArray(s.history)? s.history.map(String):[];
+            s.history.unshift(label);
             s.history = s.history.slice(0,8);
             return s;
           });
@@ -179,6 +191,7 @@
       onChange,
       issueTicket(){
         const out = update((s)=>{
+          s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
           const nextNumber = (Number(s.lastIssued)||0)+1;
           s.lastIssued = nextNumber;
           s.queue.push(nextNumber);
@@ -187,12 +200,16 @@
         console.debug('[LOCAL] issueTicket →', out);
         return out;
       },
-      callNext(){
+      callNext(room){
         const out = update((s)=>{
+          s.queue = Array.isArray(s.queue)? coerceQueue(s.queue):[];
           if(!s.queue.length) return s;
           const next = s.queue.shift();
-          s.lastCalled = next;
-          s.history.unshift(next);
+          const wanted = (room ? String(room).toUpperCase() : '');
+          const label = wanted ? `${next}${wanted}` : String(next);
+          s.lastCalled = label;
+          s.history = Array.isArray(s.history)? s.history.map(String):[];
+          s.history.unshift(label);
           s.history = s.history.slice(0,8);
           return s;
         });
