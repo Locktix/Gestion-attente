@@ -91,6 +91,7 @@
     // Initialiser si n'existe pas
     get(stateRef).then((snap)=>{
       if(!snap.exists()){
+        console.debug('[RTDB] init état', initialState);
         return set(stateRef, initialState);
       }
       return null;
@@ -106,6 +107,7 @@
           history: Array.isArray(val.history)? val.history.slice(0,20):[],
           queue: Array.isArray(val.queue)? val.queue:[]
         };
+        console.debug('[RTDB] onValue → setState', safe);
         setState(safe);
       }
     });
@@ -125,9 +127,11 @@
         }).then((res)=>{
           // res.snapshot.val() contient l'état final
           const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
+          console.debug('[RTDB] issueTicket OK →', finalState);
           return finalState;
         }).catch((_e)=>{
           // fallback local si la transaction échoue
+          console.warn('[RTDB] issueTicket échec, fallback local');
           return update((s)=>{
             const nextNumber = (Number(s.lastIssued)||0)+1;
             s.lastIssued = nextNumber;
@@ -149,9 +153,11 @@
           return s;
         }).then((res)=>{
           const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
+          console.debug('[RTDB] callNext OK →', finalState);
           return finalState;
         }).catch((_e)=>{
           // fallback local si la transaction échoue
+          console.warn('[RTDB] callNext échec, fallback local');
           return update((s)=>{
             if(!s.queue.length) return s;
             const next = s.queue.shift();
@@ -169,15 +175,17 @@
       getState,
       onChange,
       issueTicket(){
-        return update((s)=>{
+        const out = update((s)=>{
           const nextNumber = (Number(s.lastIssued)||0)+1;
           s.lastIssued = nextNumber;
           s.queue.push(nextNumber);
           return s;
         });
+        console.debug('[LOCAL] issueTicket →', out);
+        return out;
       },
       callNext(){
-        return update((s)=>{
+        const out = update((s)=>{
           if(!s.queue.length) return s;
           const next = s.queue.shift();
           s.lastCalled = next;
@@ -185,6 +193,8 @@
           s.history = s.history.slice(0,8);
           return s;
         });
+        console.debug('[LOCAL] callNext →', out);
+        return out;
       }
     };
     window.QueueStore = Store;
