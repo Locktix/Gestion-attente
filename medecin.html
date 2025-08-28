@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body class="page-medecin">
     <main class="container">
@@ -19,6 +20,13 @@
         <section class="controls">
             <button id="next-person" class="cta large">Personne suivante</button>
             <div class="last-called">Dernier appelé: <span id="last-called">—</span></div>
+        </section>
+
+        <section class="doctor row" style="margin-top:20px; gap:12px; align-items:center;">
+            <label for="doctor-name">Médecin:</label>
+            <input id="doctor-name" type="text" placeholder="Nom du médecin" style="padding:10px 12px; border-radius:10px; border:none; outline:none;" />
+            <button id="save-doctor" class="cta">Enregistrer</button>
+            <button id="reset-queue" class="cta" style="background:linear-gradient(180deg,#ff6b6b,#e24b4b)">Réinitialiser la file</button>
         </section>
 
         <section class="help">

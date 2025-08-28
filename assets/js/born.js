@@ -1,8 +1,12 @@
 (function(){
   const btn = document.getElementById('take-ticket');
   const COOLDOWN_MS = 3000;
+  const PIN_KEY = 'site-pin';
 
   if(!btn){ return; }
+
+  // Protection par code à 6 chiffres (stocké localement)
+  ensurePinProtection();
 
   btn.addEventListener('click', async ()=>{
     if(btn.disabled){ return; }
@@ -56,6 +60,19 @@
     w.document.close();
     w.focus();
     setTimeout(()=>{ w.print(); w.close(); }, 100);
+  }
+
+  function ensurePinProtection(){
+    try{
+      const storedPin = localStorage.getItem(PIN_KEY);
+      if(storedPin && storedPin.length===6){ return; }
+      let pin = '';
+      while(!/^\d{6}$/.test(pin)){
+        pin = prompt('Entrez un code à 6 chiffres pour sécuriser l\'accès au site (à retenir):')||'';
+        if(pin==='' ){ return; }
+      }
+      localStorage.setItem(PIN_KEY, pin);
+    }catch(_e){}
   }
 })();
 

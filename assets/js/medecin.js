@@ -2,6 +2,9 @@
   const nextBtn = document.getElementById('next-person');
   const lenEl = document.getElementById('queue-length');
   const lastEl = document.getElementById('last-called');
+  const doctorInput = document.getElementById('doctor-name');
+  const saveDoctorBtn = document.getElementById('save-doctor');
+  const resetBtn = document.getElementById('reset-queue');
   let audioCtx = null;
   function blip(){
     try{
@@ -24,6 +27,11 @@
   function render(state){
     lenEl.textContent = String((state.queue||[]).length);
     lastEl.textContent = state.lastCalled ? String(state.lastCalled) : '—';
+    if(doctorInput && typeof state.currentDoctor==='string'){
+      if(document.activeElement !== doctorInput){
+        doctorInput.value = state.currentDoctor;
+      }
+    }
   }
 
   render(window.QueueStore.getState());
@@ -37,6 +45,22 @@
       const s = await window.QueueStore.callNext();
       render(s);
       blip();
+    });
+  }
+
+  if(saveDoctorBtn){
+    saveDoctorBtn.addEventListener('click', async ()=>{
+      const name = (doctorInput?.value||'').trim();
+      const s = await window.QueueStore.setDoctor(name);
+      render(s);
+    });
+  }
+
+  if(resetBtn){
+    resetBtn.addEventListener('click', async ()=>{
+      if(!confirm('Réinitialiser la file et remettre les compteurs à zéro ?')) return;
+      const s = await window.QueueStore.resetAll();
+      render(s);
     });
   }
 })();
