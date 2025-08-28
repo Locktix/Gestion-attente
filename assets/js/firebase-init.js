@@ -19,7 +19,8 @@ try{
   const app = initializeApp(firebaseConfig);
   db = getDatabase(app);
   window.FirebaseDB = { db, ref, onValue, runTransaction, set, update, get, child };
-  // Optionnel: console.info('Firebase initialisé');
+  window.dispatchEvent(new CustomEvent('firebase-ready'));
+  console.debug('[Firebase] initialisé');
 }catch(e){
   console.warn('Firebase non initialisé:', e);
   window.FirebaseDB = null;
