@@ -1,16 +1,32 @@
 (function(){
   const btn = document.getElementById('take-ticket');
+  const COOLDOWN_MS = 3000;
 
   if(!btn){ return; }
 
   btn.addEventListener('click', ()=>{
+    if(btn.disabled){ return; }
+
+    // Déclencher la délivrance du ticket
     const state = window.QueueStore.issueTicket();
     const number = state.lastIssued;
     const now = new Date();
     const dateStr = now.toLocaleDateString('fr-FR');
     const timeStr = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 
+    // Désactiver temporairement le bouton
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Veuillez patienter…';
+
+    // Ouvrir la fenêtre d'impression
     openPrintWindow(number, dateStr, timeStr);
+
+    // Réactiver après cooldown
+    setTimeout(()=>{
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }, COOLDOWN_MS);
   });
 
   function openPrintWindow(number, dateStr, timeStr){

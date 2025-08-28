@@ -6,7 +6,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,C
 a{color:var(--accent)}
 
 .container{max-width:920px;margin:0 auto;padding:24px}
-.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;gap:24px}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;gap:40px}
 .row{display:flex;align-items:center;gap:16px}
 .between{justify-content:space-between}
 
@@ -14,13 +14,14 @@ a{color:var(--accent)}
 .cta{background:linear-gradient(180deg,var(--accent),#3b77f3);color:#fff;border:none;border-radius:16px;padding:18px 28px;font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(110,168,254,.35);transition:transform .06s ease,filter .2s ease}
 .cta:hover{transform:translateY(-1px)}
 .cta:active{transform:translateY(1px)}
+.cta:disabled{filter:grayscale(0.3) brightness(0.8); cursor:not-allowed; transform:none}
 .cta.large{font-size:28px;padding:22px 36px}
 .cta.huge{font-size:38px;padding:48px 56px;border-radius:28px;min-width:320px;min-height:320px;display:flex;align-items:center;justify-content:center}
 .hint{color:var(--muted);margin:0}
 .links{display:flex;gap:12px;color:var(--muted)}
 
 /* Indicateur de sortie du ticket */
-.exit-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px}
+.exit-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:24px}
 .exit-indicator .arrow{font-size:48px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
 .exit-indicator .exit-text{color:var(--muted);font-weight:600}
 
