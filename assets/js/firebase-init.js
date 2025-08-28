@@ -20,13 +20,22 @@ try{
   const app = initializeApp(firebaseConfig);
   db = getDatabase(app);
   window.FirebaseDB = { db, ref, onValue, runTransaction, set, update, get, child };
+  // Signaler le readiness RTDB immédiatement pour permettre l'attachement même sans auth
+  try{ window.dispatchEvent(new CustomEvent('firebase-ready')); }catch(_e){}
+  // Suivi de la connexion Firebase (.info/connected)
+  try{
+    const connRef = ref(db, '.info/connected');
+    onValue(connRef, (snap)=>{
+      const isConnected = !!snap.val();
+      try{ window.dispatchEvent(new CustomEvent('firebase-connection', { detail: isConnected })); }catch(_e){}
+    });
+  }catch(_e){}
   const auth = getAuth(app);
   signInAnonymously(auth).catch((e)=>{
     console.warn('[Firebase] Auth anonyme échouée', e);
   });
   onAuthStateChanged(auth, (user)=>{
     if(user){
-      window.dispatchEvent(new CustomEvent('firebase-ready'));
       console.debug('[Firebase] initialisé (auth anonyme OK)');
     }
   });

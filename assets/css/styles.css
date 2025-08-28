@@ -20,6 +20,11 @@ a{color:var(--accent)}
 .hint{color:var(--muted);margin:0}
 .links{display:flex;gap:12px;color:var(--muted)}
 
+/* Indicateur Firebase global (badge fixé en bas à droite) */
+.firebase-indicator{position:fixed;right:12px;bottom:12px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.08);color:var(--muted);backdrop-filter:blur(6px)}
+html[data-firebase="online"] .firebase-indicator{color:#0b5137;background:linear-gradient(180deg,#a7f3d0,#6ee7b7)}
+html[data-firebase="offline"] .firebase-indicator{color:#5f1d1d;background:linear-gradient(180deg,#fecaca,#fca5a5)}
+
 /* Indicateur de sortie du ticket */
 .exit-indicator{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:24px}
 .exit-indicator .arrow{font-size:48px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}
