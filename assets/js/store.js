@@ -8,18 +8,8 @@
     lastIssued: 0,      // dernier numéro délivré à la borne
     lastCalled: 0,      // dernier numéro appelé par le médecin
     history: [],        // derniers numéros appelés (du plus récent au plus ancien)
-    queue: [],          // numéros en attente (FIFO)
-    currentDoctor: '',  // médecin actuellement en charge
-    lastDoctor: '',     // médecin qui a appelé le dernier numéro
-    lastResetDate: ''   // AAAA-MM-JJ de la dernière remise à zéro
+    queue: []           // numéros en attente (FIFO)
   };
-
-  function todayStr(){
-    const d = new Date();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${d.getFullYear()}-${m}-${day}`;
-  }
 
   function getState(){
     try{
@@ -34,10 +24,7 @@
         lastIssued: Number(parsed.lastIssued)||0,
         lastCalled: Number(parsed.lastCalled)||0,
         history: Array.isArray(parsed.history)? parsed.history.slice(0,20):[],
-        queue: Array.isArray(parsed.queue)? parsed.queue:[],
-        currentDoctor: typeof parsed.currentDoctor==='string'? parsed.currentDoctor:'',
-        lastDoctor: typeof parsed.lastDoctor==='string'? parsed.lastDoctor:'',
-        lastResetDate: typeof parsed.lastResetDate==='string'? parsed.lastResetDate:''
+        queue: Array.isArray(parsed.queue)? parsed.queue:[]
       };
     }catch(err){
       console.error('Lecture état échouée', err);
@@ -93,19 +80,6 @@
     }, 2000);
   }
 
-  function applyDailyResetIfNeeded(state){
-    const s = {...state};
-    const today = todayStr();
-    if(s.lastResetDate !== today){
-      s.lastIssued = 0;
-      s.lastCalled = 0;
-      s.history = [];
-      s.queue = [];
-      s.lastResetDate = today;
-    }
-    return s;
-  }
-
   // Détection Firebase (peut être retardée)
   let hasFirebase = !!(window.FirebaseDB && window.FirebaseDB.db);
 
@@ -119,13 +93,12 @@
     get(stateRef).then((snap)=>{
       if(!snap.exists()){
         console.debug('[RTDB] init état', initialState);
-        return set(stateRef, {...initialState, lastResetDate: todayStr()});
+        return set(stateRef, initialState);
       }
       return null;
     }).catch((e)=>{ console.warn('Firebase get/init échoué', e); });
 
     // Abonnement temps réel → met à jour le cache local + broadcast
-    let debounceTimer = null;
     onValue(stateRef, (snapshot)=>{
       const val = snapshot.val();
       if(val){
@@ -133,15 +106,10 @@
           lastIssued: Number(val.lastIssued)||0,
           lastCalled: Number(val.lastCalled)||0,
           history: Array.isArray(val.history)? val.history.slice(0,20):[],
-          queue: Array.isArray(val.queue)? val.queue:[],
-          currentDoctor: typeof val.currentDoctor==='string'? val.currentDoctor:'',
-          lastDoctor: typeof val.lastDoctor==='string'? val.lastDoctor:'',
-          lastResetDate: typeof val.lastResetDate==='string'? val.lastResetDate:''
+          queue: Array.isArray(val.queue)? val.queue:[]
         };
-        if(window.DEBUG_QUEUE){ console.debug('[RTDB] onValue → setState', safe); }
-        // debounce pour limiter les rafraîchissements
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(()=>{ setState(applyDailyResetIfNeeded(safe)); }, 60);
+        console.debug('[RTDB] onValue → setState', safe);
+        setState(safe);
       }
     });
 
@@ -149,25 +117,9 @@
     window.QueueStore = {
       getState,
       onChange,
-      setDoctor(name){
-        return window.FirebaseDB.runTransaction(stateRef, (current)=>{
-          const s = current || {...initialState};
-          s.currentDoctor = String(name||'');
-          return s;
-        }).then((res)=> res?.snapshot?.val() || getState());
-      },
-      resetAll(){
-        return window.FirebaseDB.runTransaction(stateRef, (_current)=>{
-          const s = {...initialState};
-          s.lastResetDate = todayStr();
-          return s;
-        }).then((res)=> res?.snapshot?.val() || getState());
-      },
       async issueTicket(){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
-          const withReset = applyDailyResetIfNeeded(s);
-          Object.assign(s, withReset);
           const nextNumber = (Number(s.lastIssued)||0)+1;
           s.lastIssued = nextNumber;
           s.queue = Array.isArray(s.queue)? s.queue:[];
@@ -175,13 +127,11 @@
           return s;
         }).then((res)=>{
           const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
-          if(window.DEBUG_QUEUE){ console.debug('[RTDB] issueTicket OK →', finalState); }
+          console.debug('[RTDB] issueTicket OK →', finalState);
           return finalState;
         }).catch((_e)=>{
-          if(window.DEBUG_QUEUE){ console.warn('[RTDB] issueTicket échec, fallback local'); }
+          console.warn('[RTDB] issueTicket échec, fallback local');
           return update((s)=>{
-            const withReset = applyDailyResetIfNeeded(s);
-            Object.assign(s, withReset);
             const nextNumber = (Number(s.lastIssued)||0)+1;
             s.lastIssued = nextNumber;
             s.queue.push(nextNumber);
@@ -192,8 +142,6 @@
       async callNext(){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
-          const withReset = applyDailyResetIfNeeded(s);
-          Object.assign(s, withReset);
           s.queue = Array.isArray(s.queue)? s.queue:[];
           if(!s.queue.length) return s;
           const next = s.queue.shift();
@@ -201,23 +149,19 @@
           s.history = Array.isArray(s.history)? s.history:[];
           s.history.unshift(next);
           s.history = s.history.slice(0,8);
-          s.lastDoctor = String(s.currentDoctor||'');
           return s;
         }).then((res)=>{
           const finalState = res && res.snapshot && res.snapshot.val ? res.snapshot.val() : getState();
-          if(window.DEBUG_QUEUE){ console.debug('[RTDB] callNext OK →', finalState); }
+          console.debug('[RTDB] callNext OK →', finalState);
           return finalState;
         }).catch((_e)=>{
-          if(window.DEBUG_QUEUE){ console.warn('[RTDB] callNext échec, fallback local'); }
+          console.warn('[RTDB] callNext échec, fallback local');
           return update((s)=>{
-            const withReset = applyDailyResetIfNeeded(s);
-            Object.assign(s, withReset);
             if(!s.queue.length) return s;
             const next = s.queue.shift();
             s.lastCalled = next;
             s.history.unshift(next);
             s.history = s.history.slice(0,8);
-            s.lastDoctor = String(s.currentDoctor||'');
             return s;
           });
         });
@@ -233,23 +177,8 @@
     const Store = {
       getState,
       onChange,
-      setDoctor(name){
-        return update((s)=>{
-          s.currentDoctor = String(name||'');
-          return s;
-        });
-      },
-      resetAll(){
-        return update((_s)=>{
-          const s = {...initialState};
-          s.lastResetDate = todayStr();
-          return s;
-        });
-      },
       issueTicket(){
         const out = update((s)=>{
-          const withReset = applyDailyResetIfNeeded(s);
-          Object.assign(s, withReset);
           const nextNumber = (Number(s.lastIssued)||0)+1;
           s.lastIssued = nextNumber;
           s.queue.push(nextNumber);
@@ -260,14 +189,11 @@
       },
       callNext(){
         const out = update((s)=>{
-          const withReset = applyDailyResetIfNeeded(s);
-          Object.assign(s, withReset);
           if(!s.queue.length) return s;
           const next = s.queue.shift();
           s.lastCalled = next;
           s.history.unshift(next);
           s.history = s.history.slice(0,8);
-          s.lastDoctor = String(s.currentDoctor||'');
           return s;
         });
         console.debug('[LOCAL] callNext →', out);

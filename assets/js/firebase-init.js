@@ -3,7 +3,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getDatabase, ref, onValue, runTransaction, set, update, get, child } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwbWEYidxJsV26OEa7a_C4y9NS-ZLt6ko",
@@ -20,16 +19,8 @@ try{
   const app = initializeApp(firebaseConfig);
   db = getDatabase(app);
   window.FirebaseDB = { db, ref, onValue, runTransaction, set, update, get, child };
-  const auth = getAuth(app);
-  signInAnonymously(auth).catch((e)=>{
-    console.warn('[Firebase] Auth anonyme échouée', e);
-  });
-  onAuthStateChanged(auth, (user)=>{
-    if(user){
-      window.dispatchEvent(new CustomEvent('firebase-ready'));
-      console.debug('[Firebase] initialisé (auth anonyme OK)');
-    }
-  });
+  window.dispatchEvent(new CustomEvent('firebase-ready'));
+  console.debug('[Firebase] initialisé');
 }catch(e){
   console.warn('Firebase non initialisé:', e);
   window.FirebaseDB = null;
