@@ -4,11 +4,11 @@
 
   if(!btn){ return; }
 
-  btn.addEventListener('click', ()=>{
+  btn.addEventListener('click', async ()=>{
     if(btn.disabled){ return; }
 
     // Déclencher la délivrance du ticket
-    const state = window.QueueStore.issueTicket();
+    const state = await window.QueueStore.issueTicket();
     const number = state.lastIssued;
     const now = new Date();
     const dateStr = now.toLocaleDateString('fr-FR');

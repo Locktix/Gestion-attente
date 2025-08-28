@@ -85,16 +85,16 @@
 
   // Si Firebase est dispo, abonnez-vous au noeud et synchronisez localStorage
   if(hasFirebase){
-    const { db, ref, onValue, runTransaction, get, child, set } = window.FirebaseDB;
+    const { db, ref, onValue, runTransaction, get, set } = window.FirebaseDB;
     const stateRef = ref(db, FIREBASE_PATH);
 
     // Initialiser si n'existe pas
-    get(child(ref(db), FIREBASE_PATH)).then((snap)=>{
+    get(stateRef).then((snap)=>{
       if(!snap.exists()){
         return set(stateRef, initialState);
       }
       return null;
-    }).catch(()=>{});
+    }).catch((e)=>{ console.warn('Firebase get/init échoué', e); });
 
     // Abonnement temps réel → met à jour le cache local + broadcast
     onValue(stateRef, (snapshot)=>{
@@ -114,7 +114,7 @@
     window.QueueStore = {
       getState,
       onChange,
-      issueTicket(){
+      async issueTicket(){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
           const nextNumber = (Number(s.lastIssued)||0)+1;
@@ -136,7 +136,7 @@
           });
         });
       },
-      callNext(){
+      async callNext(){
         return window.FirebaseDB.runTransaction(stateRef, (current)=>{
           const s = current || {...initialState};
           s.queue = Array.isArray(s.queue)? s.queue:[];

@@ -33,8 +33,8 @@
   });
 
   if(nextBtn){
-    nextBtn.addEventListener('click', ()=>{
-      const s = window.QueueStore.callNext();
+    nextBtn.addEventListener('click', async ()=>{
+      const s = await window.QueueStore.callNext();
       render(s);
       blip();
     });
