@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Gestion d'attente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="page-admin">
+    <main class="container">
+        <header class="admin-header">
+            <div class="header-content">
+                <div class="brand-section">
+                    <i class="fas fa-shield-alt header-icon"></i>
+                    <div>
+                        <h1>Centre Médical Ghemning</h1>
+                        <p class="subtitle">Administration</p>
+                    </div>
+                </div>
+                <div class="admin-status">
+                    <div class="status-badge">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Mode Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="admin-controls">
+            <div class="control-grid">
+                <!-- Réinitialisation -->
+                <div class="control-card danger-card">
+                    <div class="card-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Actions Critiques</h2>
+                    </div>
+                    <div class="button-group">
+                        <button id="reset-history" class="cta danger-btn">
+                            <i class="fas fa-history"></i>
+                            <span>Réinitialiser l'historique</span>
+                        </button>
+                        <button id="clear-queue" class="cta danger-btn">
+                            <i class="fas fa-trash"></i>
+                            <span>Vider la file d'attente</span>
+                        </button>
+                        <button id="reset-all" class="cta danger-btn">
+                            <i class="fas fa-bomb"></i>
+                            <span>Réinitialiser tout</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gestion des tickets -->
+                <div class="control-card">
+                    <div class="card-header">
+                        <i class="fas fa-ticket-alt"></i>
+                        <h2>Gestion des Tickets</h2>
+                    </div>
+                    <div class="button-group">
+                        <button id="add-ticket" class="cta">
+                            <i class="fas fa-plus"></i>
+                            <span>Ajouter un ticket</span>
+                        </button>
+                        <button id="remove-last" class="cta">
+                            <i class="fas fa-minus"></i>
+                            <span>Retirer le dernier</span>
+                        </button>
+                        <button id="skip-next" class="cta">
+                            <i class="fas fa-forward"></i>
+                            <span>Passer au suivant</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Configuration -->
+                <div class="control-card">
+                    <div class="card-header">
+                        <i class="fas fa-cog"></i>
+                        <h2>Configuration</h2>
+                    </div>
+                    <div class="config-options">
+                        <label class="config-item">
+                            <span>Numéro de départ</span>
+                            <input type="number" id="start-number" min="1" value="1" class="config-input">
+                        </label>
+                        <label class="config-item">
+                            <span>Son d'appel</span>
+                            <select id="sound-toggle" class="config-input">
+                                <option value="on">Activé</option>
+                                <option value="off">Désactivé</option>
+                            </select>
+                        </label>
+                        <label class="config-item">
+                            <span>Mode debug</span>
+                            <select id="debug-mode" class="config-input">
+                                <option value="off">Désactivé</option>
+                                <option value="on">Activé</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Statistiques avancées -->
+                <div class="control-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar"></i>
+                        <h2>Statistiques Avancées</h2>
+                    </div>
+                    <div class="advanced-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Tickets émis aujourd'hui</span>
+                            <span class="stat-value" id="stats-issued">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Patients traités</span>
+                            <span class="stat-value" id="stats-processed">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">En attente actuellement</span>
+                            <span class="stat-value" id="stats-waiting">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Temps moyen d'attente</span>
+                            <span class="stat-value" id="stats-avg-time">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Historique détaillé -->
+        <section class="history-section">
+            <div class="history-card">
+                <div class="card-header">
+                    <i class="fas fa-list"></i>
+                    <h2>Historique Détaillé</h2>
+                    <button id="export-history" class="export-btn">
+                        <i class="fas fa-download"></i>
+                        <span>Exporter</span>
+                    </button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="history-item">
+                        <span class="history-time">—</span>
+                        <span class="history-number">—</span>
+                        <span class="history-room">—</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logs système -->
+        <section class="logs-section">
+            <div class="logs-card">
+                <div class="card-header">
+                    <i class="fas fa-terminal"></i>
+                    <h2>Logs Système</h2>
+                    <button id="clear-logs" class="export-btn">
+                        <i class="fas fa-trash"></i>
+                        <span>Vider</span>
+                    </button>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <div class="log-entry">
+                        <span class="log-time">—</span>
+                        <span class="log-message">Système initialisé</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="help-section">
+            <div class="help-card">
+                <i class="fas fa-info-circle"></i>
+                <p>Navigation: <a href="index.html" class="link-btn"><i class="fas fa-home"></i> Borne</a> | 
+                <a href="medecin.html" class="link-btn"><i class="fas fa-user-md"></i> Médecin</a> | 
+                <a href="tv.html" class="link-btn"><i class="fas fa-tv"></i> TV</a></p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de confirmation -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Confirmation requise</h3>
+            </div>
+            <div class="modal-body">
+                <p id="modal-message">Êtes-vous sûr de vouloir effectuer cette action ?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-cancel" class="cta">Annuler</button>
+                <button id="modal-confirm" class="cta danger-btn">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="firebase-indicator" aria-live="polite">Synchro Firebase</div>
+
+    <script type="module" src="assets/js/firebase-init.js"></script>
+    <script src="assets/js/store.js"></script>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>
