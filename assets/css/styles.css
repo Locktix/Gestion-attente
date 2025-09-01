@@ -639,4 +639,77 @@ html[data-firebase="offline"] .firebase-indicator{color:#5f1d1d;background:linea
   .current-number{font-size:24vw}
 }
 
+/* Notifications d'impression */
+.print-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, var(--accent-2), #2dd4bf);
+  color: #0b1320;
+  padding: 16px 20px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(70, 214, 160, 0.4);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  max-width: 300px;
+}
+
+.print-notification.show {
+  transform: translateX(0);
+}
+
+.print-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.print-content i {
+  font-size: 20px;
+}
+
+.print-content div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.print-content strong {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.print-content span {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Indicateur d'imprimante */
+.printer-indicator {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255,255,255,.08);
+  color: var(--muted);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.printer-indicator.connected {
+  color: #0b5137;
+  background: linear-gradient(180deg, #a7f3d0, #6ee7b7);
+}
+
+.printer-indicator.simulation {
+  color: #ff9500;
+  background: linear-gradient(180deg, #fed7aa, #fdba74);
+}
+
 

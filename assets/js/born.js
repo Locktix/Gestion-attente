@@ -1,8 +1,29 @@
 (function(){
   const btn = document.getElementById('take-ticket');
   const COOLDOWN_MS = 1000;
+  const printerIndicator = document.querySelector('.printer-indicator');
 
   if(!btn){ return; }
+
+  // Initialiser l'indicateur d'imprimante
+  function updatePrinterIndicator() {
+    const status = window.getPrinterStatus();
+    if (status.connected) {
+      printerIndicator.className = 'printer-indicator connected';
+      printerIndicator.innerHTML = '<i class="fas fa-print"></i><span>Imprimante connectée</span>';
+    } else {
+      printerIndicator.className = 'printer-indicator simulation';
+      printerIndicator.innerHTML = '<i class="fas fa-print"></i><span>Mode simulation</span>';
+    }
+  }
+
+  // Écouter les événements de connexion d'imprimante
+  window.addEventListener('printer-connected', (e) => {
+    updatePrinterIndicator();
+  });
+
+  // Mettre à jour l'indicateur au démarrage
+  setTimeout(updatePrinterIndicator, 1000);
 
   btn.addEventListener('click', async ()=>{
     if(btn.disabled){ return; }
@@ -17,11 +38,22 @@
     // Désactiver temporairement le bouton
     const originalLabel = btn.textContent;
     btn.disabled = true;
-    btn.textContent = 'Veuillez patienter…';
+    btn.textContent = 'Impression en cours…';
 
-    // Ouvrir la fenêtre d'impression
-    // Les tickets imprimés restent numériques (sans lettre)
-    openPrintWindow(number, dateStr, timeStr);
+    try {
+      // Imprimer avec l'imprimante thermique
+      await window.printTicket({
+        number: number,
+        timestamp: `${dateStr} ${timeStr}`,
+        room: null
+      });
+
+      console.log(`Ticket ${number} imprimé avec succès`);
+    } catch (error) {
+      console.error('Erreur d\'impression:', error);
+      // Fallback vers l'impression classique
+      openPrintWindow(number, dateStr, timeStr);
+    }
 
     // Réactiver après cooldown
     setTimeout(()=>{
